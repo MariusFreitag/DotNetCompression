@@ -13,7 +13,7 @@ namespace Compression
       Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed<CommandLineOptions>(o =>
       {
         var sourceDirectory = new DirectoryInfo(o.Source);
-        var destinationFile = new FileInfo(o.Destination);
+        var destinationFile = new FileInfo(DateTime.Now.ToString(o.Destination));
 
         var zipService = new ZipCompressionService(new GitignoreService(sourceDirectory), new CompressionOptions
         {
