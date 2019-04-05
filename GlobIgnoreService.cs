@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using DotNetCompression.Compression;
 
-namespace Compression
+namespace DotNetCompression
 {
   public class GlobIgnoreService : IIgnoreService
   {

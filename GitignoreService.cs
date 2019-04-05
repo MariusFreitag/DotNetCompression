@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using DotNetCompression.Compression;
 
-namespace Compression
+namespace DotNetCompression
 {
   public class GitignoreService : IIgnoreService
   {

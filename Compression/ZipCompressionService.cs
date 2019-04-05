@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace Compression
+namespace DotNetCompression.Compression
 {
-  public class ZipCompressionService : GlobIgnoreService
+  public class ZipCompressionService
   {
     private readonly IIgnoreService ignoreService;
     private readonly CompressionOptions options;
@@ -25,7 +25,7 @@ namespace Compression
 
     public event EventHandler<CompressionProgressEvent> Progress;
 
-    public async Task CreateAsync()
+    public async Task CompressAsync()
     {
       try
       {

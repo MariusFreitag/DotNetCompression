@@ -1,4 +1,4 @@
-namespace Compression
+namespace DotNetCompression.Compression
 {
   public enum CompressionLevel
   {

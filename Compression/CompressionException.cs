@@ -1,6 +1,6 @@
 using System;
 
-namespace Compression
+namespace DotNetCompression.Compression
 {
   public class CompressionException : Exception
   {

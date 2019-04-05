@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Compression
+namespace DotNetCompression.Compression
 {
   public interface IIgnoreService
   {

@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
 
-namespace Compression
+namespace DotNetCompression.Compression
 {
   public interface ICompressionService
   {
-    Task CreateAsync();
+    Task CompressAsync();
   }
 }

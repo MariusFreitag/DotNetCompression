@@ -3,8 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using CommandLine;
+using DotNetCompression.Compression;
 
-namespace Compression
+namespace DotNetCompression
 {
   class Program
   {
@@ -34,7 +35,7 @@ namespace Compression
         Console.Write("...");
         var sw = new Stopwatch();
         sw.Start();
-        zipService.CreateAsync().Wait();
+        zipService.CompressAsync().Wait();
         sw.Stop();
         Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Gray;

@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace Compression
+namespace DotNetCompression
 {
   public class CommandLineOptions
   {
