@@ -13,6 +13,9 @@ namespace DotNetCompression.Purgation
     {
       this.options = options;
     }
+
+    public event EventHandler<PurgationProgressEvent> Progress;
+
     public void Purge()
     {
       var files = options.Directory.GetFiles()
@@ -39,43 +42,53 @@ namespace DotNetCompression.Purgation
 
       foreach (var file in residualFiles)
       {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"Keeping File: {file.FullName}");
+        Progress?.Invoke(this, new PurgationProgressEvent
+        {
+          CurrentElement = file,
+          Type = PurgationFileType.Residual,
+          Exception = null
+        });
       }
 
       foreach (var file in corruptFiles)
       {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"Deleting corrupt file: {file.FullName}");
-
+        Exception exception = null;
         try
         {
           file.Delete();
         }
         catch (Exception e)
         {
-          Console.ForegroundColor = ConsoleColor.Red;
-          Console.WriteLine($"Deletetion failed: {e.Message}");
+          exception = e;
         }
+
+        Progress?.Invoke(this, new PurgationProgressEvent
+        {
+          CurrentElement = file,
+          Type = PurgationFileType.Corrupt,
+          Exception = exception
+        });
       }
 
       foreach (var file in oldHealthyFiles)
       {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"Deleting old file: {file.FullName}");
-
+        Exception exception = null;
         try
         {
           file.Delete();
         }
         catch (Exception e)
         {
-          Console.ForegroundColor = ConsoleColor.Red;
-          Console.WriteLine($"Deletetion failed: {e.Message}");
+          exception = e;
         }
-      }
 
-      Console.ForegroundColor = ConsoleColor.Gray;
+        Progress?.Invoke(this, new PurgationProgressEvent
+        {
+          CurrentElement = file,
+          Type = PurgationFileType.Old,
+          Exception = exception
+        });
+      }
     }
   }
 }

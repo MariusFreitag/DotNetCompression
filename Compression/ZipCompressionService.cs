@@ -73,7 +73,7 @@ namespace DotNetCompression.Compression
         currentFileCount++;
         var isIgnored = ignoreService.IsIgnored(file);
 
-        Progress?.Invoke(options, new CompressionProgressEvent
+        Progress?.Invoke(this, new CompressionProgressEvent
         {
           TotalCount = totalFileCount,
           CurrentCount = currentFileCount,

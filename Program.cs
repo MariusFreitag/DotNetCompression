@@ -40,8 +40,12 @@ namespace DotNetCompression
 
         zipService.Progress += (sender, progressEvent) =>
         {
+          Console.Write("\r" + new string(' ', Console.WindowWidth) + "\r");
+
           Console.ForegroundColor = ConsoleColor.Green;
-          Console.Write($"\r{progressEvent.CurrentCount}/{progressEvent.TotalCount}");
+          Console.Write($"{progressEvent.CurrentCount}/{progressEvent.TotalCount} ");
+          Console.ForegroundColor = progressEvent.Ignored ? ConsoleColor.Yellow : ConsoleColor.Gray;
+          Console.Write(progressEvent.CurrentElement);
           Console.ForegroundColor = ConsoleColor.Gray;
         };
 
@@ -52,6 +56,36 @@ namespace DotNetCompression
           KeepCount = o.RemoveExcept,
           PurgeCorruptFiles = true
         });
+
+        purgationService.Progress += (sender, progressEvent) =>
+        {
+          switch (progressEvent.Type)
+          {
+            case PurgationFileType.Corrupt:
+              Console.ForegroundColor = ConsoleColor.Red;
+              Console.Write("Deleted corrupt file ");
+              break;
+            case PurgationFileType.Old:
+              Console.ForegroundColor = ConsoleColor.Yellow;
+              Console.Write("Deleted old file ");
+              break;
+            case PurgationFileType.Residual:
+              Console.ForegroundColor = ConsoleColor.Green;
+              Console.Write("Keeping file ");
+              break;
+          }
+
+          Console.Write(progressEvent.CurrentElement);
+
+          if (progressEvent.Exception != null)
+          {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write($" with error '{progressEvent.Exception.Message}'");
+          }
+
+          Console.WriteLine(".");
+          Console.ForegroundColor = ConsoleColor.Gray;
+        };
 
         Console.Write("Starting compression of ");
         Console.ForegroundColor = ConsoleColor.Blue;
@@ -67,10 +101,13 @@ namespace DotNetCompression
         zipService.CompressAsync().Wait();
         sw.Stop();
         Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Gray;
         Console.Write("Compression finished in ");
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine($"{sw.ElapsedMilliseconds / 1000.0}s");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write("Size: ");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"{Math.Round(new FileInfo(destinationFile.FullName).Length / (1024.0 * 1024.0), 2)}MB");
         Console.ForegroundColor = ConsoleColor.Gray;
 
         if (o.RemoveExcept > 0)
@@ -80,7 +117,6 @@ namespace DotNetCompression
           sw.Start();
           purgationService.Purge();
           sw.Stop();
-          Console.ForegroundColor = ConsoleColor.Gray;
           Console.Write($"Purgation finished in ");
           Console.ForegroundColor = ConsoleColor.Green;
           Console.WriteLine($"{sw.ElapsedMilliseconds / 1000.0}s");
