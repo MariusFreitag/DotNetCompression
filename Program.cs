@@ -17,7 +17,19 @@ namespace DotNetCompression
         var sourceDirectory = new DirectoryInfo(o.Source);
         var destinationFile = new FileInfo(DateTime.Now.ToString(o.Destination));
 
-        var zipService = new ZipCompressionService(new GitignoreService(sourceDirectory), new CompressionOptions
+        CombinedIgnoreService combinedIgnoreService = new CombinedIgnoreService();
+        if (o.UseGitignoreFiles)
+        {
+          combinedIgnoreService.addIgnoreService(new GitignoreService(sourceDirectory));
+        }
+        else if (o.IgnoreFile != null)
+        {
+          var globIgnoreService = new GlobIgnoreService();
+          globIgnoreService.AddFilePatterns(File.ReadAllLines(o.IgnoreFile));
+          combinedIgnoreService.addIgnoreService(globIgnoreService);
+        }
+
+        var zipService = new ZipCompressionService(combinedIgnoreService, new CompressionOptions
         {
           Source = sourceDirectory,
           Destination = destinationFile,

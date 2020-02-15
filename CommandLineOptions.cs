@@ -12,5 +12,11 @@ namespace DotNetCompression
 
     [Option('r', "remove-except", Required = false, HelpText = "Only keep the latest archives up to the given count.")]
     public int RemoveExcept { get; set; }
+
+    [Option('i', "ignore-file", Required = false, HelpText = "File to get information on which files to ignore. This must be in the .gitignore format.")]
+    public string IgnoreFile { get; set; }
+
+    [Option('g', "use-gitignore-files", Required = false, HelpText = "Specifies that all .gitignore files should be added as ignore files.")]
+    public bool UseGitignoreFiles { get; set; }
   }
 }
