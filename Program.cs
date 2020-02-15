@@ -17,75 +17,9 @@ namespace DotNetCompression
         var sourceDirectory = new DirectoryInfo(o.Source);
         var destinationFile = new FileInfo(DateTime.Now.ToString(o.Destination));
 
-        CombinedIgnoreService combinedIgnoreService = new CombinedIgnoreService();
-        if (o.UseGitignoreFiles)
-        {
-          combinedIgnoreService.addIgnoreService(new GitignoreService(sourceDirectory));
-        }
-        else if (o.IgnoreFile != null)
-        {
-          var globIgnoreService = new GlobIgnoreService();
-          globIgnoreService.AddFilePatterns(File.ReadAllLines(o.IgnoreFile));
-          combinedIgnoreService.addIgnoreService(globIgnoreService);
-        }
-
-        var zipService = new ZipCompressionService(combinedIgnoreService, new CompressionOptions
-        {
-          Source = sourceDirectory,
-          Destination = destinationFile,
-          CompressionLevel = CompressionLevel.Zero,
-          OverrideDestination = true,
-          Password = null
-        });
-
-        zipService.Progress += (sender, progressEvent) =>
-        {
-          Console.Write("\r" + new string(' ', Console.WindowWidth) + "\r");
-
-          Console.ForegroundColor = ConsoleColor.Green;
-          Console.Write($"{progressEvent.CurrentCount}/{progressEvent.TotalCount} ");
-          Console.ForegroundColor = progressEvent.Ignored ? ConsoleColor.Yellow : ConsoleColor.Gray;
-          Console.Write(progressEvent.CurrentElement);
-          Console.ForegroundColor = ConsoleColor.Gray;
-        };
-
-        var purgationService = new ZipDateTimePurgationService(new PurgationOptions
-        {
-          Directory = destinationFile.Directory,
-          FileTimeFormat = o.Destination.Split("\\/").Last(),
-          KeepCount = o.RemoveExcept,
-          PurgeCorruptFiles = true
-        });
-
-        purgationService.Progress += (sender, progressEvent) =>
-        {
-          switch (progressEvent.Type)
-          {
-            case PurgationFileType.Corrupt:
-              Console.ForegroundColor = ConsoleColor.Red;
-              Console.Write("Deleted corrupt file ");
-              break;
-            case PurgationFileType.Old:
-              Console.ForegroundColor = ConsoleColor.Yellow;
-              Console.Write("Deleted old file ");
-              break;
-            case PurgationFileType.Residual:
-              Console.ForegroundColor = ConsoleColor.Green;
-              Console.Write("Keeping file ");
-              break;
-          }
-
-          Console.Write(progressEvent.CurrentElement);
-
-          if (progressEvent.Exception != null)
-          {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write($" with error '{progressEvent.Exception.Message}'");
-          }
-
-          Console.WriteLine(".");
-          Console.ForegroundColor = ConsoleColor.Gray;
-        };
+        var ignoreService = setupIgnoreService(o, sourceDirectory);
+        var compressionService = setupCompressionService(ignoreService, sourceDirectory, destinationFile);
+        var purgationService = setupPurgationService(o, destinationFile);
 
         Console.Write("Starting compression of ");
         Console.ForegroundColor = ConsoleColor.Blue;
@@ -98,31 +32,114 @@ namespace DotNetCompression
 
         var sw = new Stopwatch();
         sw.Start();
-        zipService.CompressAsync().Wait();
-        sw.Stop();
+        compressionService.CompressAsync().Wait();
         Console.WriteLine();
+        sw.Stop();
+
         Console.Write("Compression finished in ");
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine($"{sw.ElapsedMilliseconds / 1000.0}s");
         Console.ForegroundColor = ConsoleColor.Gray;
+
         Console.Write("Size: ");
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"{Math.Round(new FileInfo(destinationFile.FullName).Length / (1024.0 * 1024.0), 2)}MB");
+        var destinationFileSize = Math.Round(new FileInfo(destinationFile.FullName).Length / (1024.0 * 1024.0), 2);
+        Console.WriteLine($"{destinationFileSize}MB");
         Console.ForegroundColor = ConsoleColor.Gray;
 
         if (o.RemoveExcept > 0)
         {
           Console.WriteLine("Starting purgation");
-          sw = new Stopwatch();
-          sw.Start();
           purgationService.Purge();
-          sw.Stop();
-          Console.Write($"Purgation finished in ");
-          Console.ForegroundColor = ConsoleColor.Green;
-          Console.WriteLine($"{sw.ElapsedMilliseconds / 1000.0}s");
-          Console.ForegroundColor = ConsoleColor.Gray;
+          Console.Write($"Purgation finished");
         }
       });
     }
+    static IIgnoreService setupIgnoreService(CommandLineOptions options, DirectoryInfo sourceDirectory)
+    {
+      CombinedIgnoreService combinedIgnoreService = new CombinedIgnoreService();
+      if (options.UseGitignoreFiles)
+      {
+        combinedIgnoreService.addIgnoreService(new GitignoreService(sourceDirectory));
+      }
+      else if (options.IgnoreFile != null)
+      {
+        var globIgnoreService = new GlobIgnoreService();
+        globIgnoreService.AddFilePatterns(File.ReadAllLines(options.IgnoreFile));
+        combinedIgnoreService.addIgnoreService(globIgnoreService);
+      }
+
+      return combinedIgnoreService;
+    }
+
+    static ICompressionService setupCompressionService(IIgnoreService ignoreService, DirectoryInfo sourceDirectory, FileInfo destinationFile)
+    {
+      var zipService = new ZipCompressionService(ignoreService, new CompressionOptions
+      {
+        Source = sourceDirectory,
+        Destination = destinationFile,
+        CompressionLevel = CompressionLevel.Zero,
+        OverrideDestination = true,
+        Password = null
+      });
+
+      zipService.Progress += (sender, progressEvent) =>
+      {
+        Console.Write("\r" + new string(' ', Console.WindowWidth) + "\r");
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write($"{progressEvent.CurrentCount}/{progressEvent.TotalCount} ");
+        Console.ForegroundColor = progressEvent.Ignored ? ConsoleColor.Yellow : ConsoleColor.Gray;
+        Console.Write(progressEvent.CurrentElement);
+        Console.ForegroundColor = ConsoleColor.Gray;
+      };
+
+      return zipService;
+    }
+
+    static IPurgationService setupPurgationService(CommandLineOptions options, FileInfo destinationFile)
+    {
+
+      var purgationService = new ZipDateTimePurgationService(new PurgationOptions
+      {
+        Directory = destinationFile.Directory,
+        FileTimeFormat = options.Destination.Split("\\/").Last(),
+        KeepCount = options.RemoveExcept,
+        PurgeCorruptFiles = true
+      });
+
+      purgationService.Progress += (sender, progressEvent) =>
+      {
+        switch (progressEvent.Type)
+        {
+          case PurgationFileType.Corrupt:
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write("Deleted corrupt file ");
+            break;
+          case PurgationFileType.Old:
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("Deleted old file ");
+            break;
+          case PurgationFileType.Residual:
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("Keeping file ");
+            break;
+        }
+
+        Console.Write(progressEvent.CurrentElement);
+
+        if (progressEvent.Exception != null)
+        {
+          Console.ForegroundColor = ConsoleColor.Red;
+          Console.Write($" with error '{progressEvent.Exception.Message}'");
+        }
+
+        Console.WriteLine(".");
+        Console.ForegroundColor = ConsoleColor.Gray;
+      };
+
+      return purgationService;
+    }
+
   }
 }

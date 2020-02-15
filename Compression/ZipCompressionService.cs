@@ -6,7 +6,7 @@ using ICSharpCode.SharpZipLib.Zip;
 
 namespace DotNetCompression.Compression
 {
-  public class ZipCompressionService
+  public class ZipCompressionService : ICompressionService
   {
     private readonly IIgnoreService ignoreService;
     private readonly CompressionOptions options;
