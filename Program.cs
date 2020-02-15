@@ -10,7 +10,7 @@ namespace DotNetCompression
 {
   class Program
   {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
       Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed<CommandLineOptions>(o =>
       {
@@ -33,7 +33,7 @@ namespace DotNetCompression
         var sw = new Stopwatch();
         sw.Start();
         compressionService.CompressAsync().Wait();
-        Console.WriteLine();
+        ClearConsoleLine();
         sw.Stop();
 
         Console.Write("Compression finished in ");
@@ -51,11 +51,12 @@ namespace DotNetCompression
         {
           Console.WriteLine("Starting purgation");
           purgationService.Purge();
-          Console.Write($"Purgation finished");
+          Console.WriteLine($"Purgation finished");
         }
       });
     }
-    static IIgnoreService setupIgnoreService(CommandLineOptions options, DirectoryInfo sourceDirectory)
+
+    private static IIgnoreService setupIgnoreService(CommandLineOptions options, DirectoryInfo sourceDirectory)
     {
       CombinedIgnoreService combinedIgnoreService = new CombinedIgnoreService();
       if (options.UseGitignoreFiles)
@@ -72,7 +73,7 @@ namespace DotNetCompression
       return combinedIgnoreService;
     }
 
-    static ICompressionService setupCompressionService(IIgnoreService ignoreService, DirectoryInfo sourceDirectory, FileInfo destinationFile)
+    private static ICompressionService setupCompressionService(IIgnoreService ignoreService, DirectoryInfo sourceDirectory, FileInfo destinationFile)
     {
       var zipService = new ZipCompressionService(ignoreService, new CompressionOptions
       {
@@ -85,19 +86,27 @@ namespace DotNetCompression
 
       zipService.Progress += (sender, progressEvent) =>
       {
-        Console.Write("\r" + new string(' ', Console.WindowWidth) + "\r");
+        ClearConsoleLine();
+
+        var progressString = $"{progressEvent.CurrentCount}/{progressEvent.TotalCount} ";
+        var currentElement = progressEvent.CurrentElement.FullName;
+        var excessCharacters = currentElement.Length + progressString.Length - Console.WindowWidth;
+        if (excessCharacters > 0)
+        {
+          currentElement = "..." + currentElement.Substring(excessCharacters + 3);
+        }
 
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write($"{progressEvent.CurrentCount}/{progressEvent.TotalCount} ");
+        Console.Write(progressString);
         Console.ForegroundColor = progressEvent.Ignored ? ConsoleColor.Yellow : ConsoleColor.Gray;
-        Console.Write(progressEvent.CurrentElement);
+        Console.Write(currentElement);
         Console.ForegroundColor = ConsoleColor.Gray;
       };
 
       return zipService;
     }
 
-    static IPurgationService setupPurgationService(CommandLineOptions options, FileInfo destinationFile)
+    private static IPurgationService setupPurgationService(CommandLineOptions options, FileInfo destinationFile)
     {
 
       var purgationService = new ZipDateTimePurgationService(new PurgationOptions
@@ -141,5 +150,9 @@ namespace DotNetCompression
       return purgationService;
     }
 
+    private static void ClearConsoleLine()
+    {
+      Console.Write("\r" + new string(' ', Console.WindowWidth) + "\r");
+    }
   }
 }
