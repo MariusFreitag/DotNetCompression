@@ -56,9 +56,9 @@ namespace DotNetCompression.Compression
         zipOutputStream.IsStreamOwner = true;
         zipOutputStream.Close();
       }
-      catch (CompressionException e)
+      catch (CompressionException)
       {
-        throw e;
+        throw;
       }
       catch (Exception e)
       {
