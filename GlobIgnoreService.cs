@@ -16,10 +16,12 @@ namespace DotNetCompression
       foreach (var pattern in patterns)
       {
         var cleanedPattern = pattern;
+
         if (cleanedPattern.IndexOf("#") >= 0)
         {
           cleanedPattern = cleanedPattern.Substring(0, cleanedPattern.IndexOf("#"));
         }
+
         cleanedPattern = cleanedPattern.Replace('/', Path.DirectorySeparatorChar);
         cleanedPattern = cleanedPattern.Replace('\\', Path.DirectorySeparatorChar);
         cleanedPattern = cleanedPattern.Replace("|", @"\|");
@@ -31,53 +33,68 @@ namespace DotNetCompression
         cleanedPattern = cleanedPattern.Replace("?", ".");
         cleanedPattern = cleanedPattern.Trim();
 
-        if (cleanedPattern.Length > 0)
+        var isNegated = cleanedPattern.StartsWith("!");
+        if (isNegated)
         {
-          if (cleanedPattern.StartsWith("!"))
-          {
-            cleanedPattern = cleanedPattern.Substring(1);
+          cleanedPattern = cleanedPattern.Substring(1);
+        }
 
-            if (includePattern == null)
-            {
-              includePattern = $"({cleanedPattern})";
-            }
-            else
-            {
-              includePattern = $"{includePattern.ToString()}|({cleanedPattern})";
-            }
-            includePattern = new Regex(@"(\.)*(\.\*)+").Replace(includePattern, ".*");
-            includeRegex = new Regex(includePattern);
+        if (!cleanedPattern.StartsWith(Path.DirectorySeparatorChar))
+        {
+          cleanedPattern = Path.DirectorySeparatorChar + cleanedPattern;
+        }
+        if (!cleanedPattern.EndsWith(Path.DirectorySeparatorChar))
+        {
+          cleanedPattern = cleanedPattern + Path.DirectorySeparatorChar;
+        }
+
+        if (isNegated)
+        {
+          if (includePattern == null)
+          {
+            includePattern = $"({cleanedPattern})";
           }
           else
           {
-            if (ignorePattern == null)
-            {
-              ignorePattern = $"(.*{cleanedPattern})";
-            }
-            else
-            {
-              ignorePattern = $"{ignorePattern.ToString()}|({cleanedPattern})";
-            }
-            ignorePattern = new Regex(@"(\.)*(\.\*)+").Replace(ignorePattern, ".*");
-            ignoreRegex = new Regex(ignorePattern);
+            includePattern = $"{includePattern.ToString()}|({cleanedPattern})";
           }
+          includePattern = new Regex(@"(\.)*(\.\*)+").Replace(includePattern, ".*");
+          includeRegex = new Regex(includePattern);
+        }
+        else
+        {
+          if (ignorePattern == null)
+          {
+            ignorePattern = $"(.*{cleanedPattern})";
+          }
+          else
+          {
+            ignorePattern = $"{ignorePattern.ToString()}|({cleanedPattern})";
+          }
+          ignorePattern = new Regex(@"(\.)*(\.\*)+").Replace(ignorePattern, ".*");
+          ignoreRegex = new Regex(ignorePattern);
         }
       }
     }
 
     public bool IsIgnored(FileInfo file)
     {
+      var fileName = file.FullName;
+      if (!fileName.StartsWith(Path.DirectorySeparatorChar))
+      {
+        fileName = Path.DirectorySeparatorChar + fileName;
+      }
+      if (!fileName.EndsWith(Path.DirectorySeparatorChar))
+      {
+        fileName = fileName + Path.DirectorySeparatorChar;
+      }
+
       if (ignoreRegex == null)
       {
         return false;
       }
 
-      if (includeRegex == null)
-      {
-        return ignoreRegex.IsMatch(file.FullName);
-      }
-
-      return ignoreRegex.IsMatch(file.FullName) && !includeRegex.IsMatch(file.FullName);
+      return ignoreRegex.IsMatch(fileName) && (includeRegex == null || !includeRegex.IsMatch(fileName));
     }
   }
 }
