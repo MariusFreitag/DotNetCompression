@@ -22,17 +22,6 @@ namespace DotNetCompression
           cleanedPattern = cleanedPattern.Substring(0, cleanedPattern.IndexOf("#"));
         }
 
-        cleanedPattern = cleanedPattern.Replace('/', Path.DirectorySeparatorChar);
-        cleanedPattern = cleanedPattern.Replace('\\', Path.DirectorySeparatorChar);
-        cleanedPattern = cleanedPattern.Replace("|", @"\|");
-        cleanedPattern = cleanedPattern.Replace("(", @"\(");
-        cleanedPattern = cleanedPattern.Replace(")", @"\)");
-        cleanedPattern = cleanedPattern.Replace(@"\", @"\\");
-        cleanedPattern = cleanedPattern.Replace(".", @"\.");
-        cleanedPattern = cleanedPattern.Replace("*", ".*");
-        cleanedPattern = cleanedPattern.Replace("?", ".");
-        cleanedPattern = cleanedPattern.Trim();
-
         var isNegated = cleanedPattern.StartsWith("!");
         if (isNegated)
         {
@@ -47,6 +36,17 @@ namespace DotNetCompression
         {
           cleanedPattern = cleanedPattern + Path.DirectorySeparatorChar;
         }
+
+        cleanedPattern = cleanedPattern.Replace('/', Path.DirectorySeparatorChar);
+        cleanedPattern = cleanedPattern.Replace('\\', Path.DirectorySeparatorChar);
+        cleanedPattern = cleanedPattern.Replace("|", @"\|");
+        cleanedPattern = cleanedPattern.Replace("(", @"\(");
+        cleanedPattern = cleanedPattern.Replace(")", @"\)");
+        cleanedPattern = cleanedPattern.Replace(@"\", @"\\");
+        cleanedPattern = cleanedPattern.Replace(".", @"\.");
+        cleanedPattern = cleanedPattern.Replace("*", ".*");
+        cleanedPattern = cleanedPattern.Replace("?", ".");
+        cleanedPattern = cleanedPattern.Trim();
 
         if (isNegated)
         {
