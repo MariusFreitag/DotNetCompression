@@ -18,5 +18,8 @@ namespace DotNetCompression
 
     [Option('g', "use-gitignore-files", Required = false, HelpText = "Specifies that all .gitignore files should be added as ignore files.")]
     public bool UseGitignoreFiles { get; set; }
+
+    [Option('p', "password", Required = false, HelpText = "Password to encrypt the resulting archive with.")]
+    public string Password { get; set; }
   }
 }

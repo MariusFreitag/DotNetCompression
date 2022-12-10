@@ -18,7 +18,7 @@ namespace DotNetCompression
         var destinationFile = new FileInfo(DateTime.Now.ToString(o.Destination));
 
         var ignoreService = setupIgnoreService(o, sourceDirectory);
-        var compressionService = setupCompressionService(ignoreService, sourceDirectory, destinationFile);
+        var compressionService = setupCompressionService(ignoreService, sourceDirectory, destinationFile, o.Password);
         var purgationService = setupPurgationService(o, destinationFile);
 
         Console.Write("Starting compression of ");
@@ -73,7 +73,7 @@ namespace DotNetCompression
       return combinedIgnoreService;
     }
 
-    private static ICompressionService setupCompressionService(IIgnoreService ignoreService, DirectoryInfo sourceDirectory, FileInfo destinationFile)
+    private static ICompressionService setupCompressionService(IIgnoreService ignoreService, DirectoryInfo sourceDirectory, FileInfo destinationFile, string password)
     {
       var zipService = new ZipCompressionService(ignoreService, new CompressionOptions
       {
@@ -81,7 +81,7 @@ namespace DotNetCompression
         Destination = destinationFile,
         CompressionLevel = CompressionLevel.Zero,
         OverrideDestination = true,
-        Password = null
+        Password = password
       });
 
       zipService.Progress += (sender, progressEvent) =>
