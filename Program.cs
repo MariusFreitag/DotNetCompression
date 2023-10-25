@@ -114,7 +114,8 @@ namespace DotNetCompression
         Directory = destinationFile.Directory,
         FileTimeFormat = options.Destination.Split("\\/").Last(),
         KeepCount = options.RemoveExcept,
-        PurgeCorruptFiles = true
+        PurgeCorruptFiles = true,
+        Password = options.Password
       });
 
       purgationService.Progress += (sender, progressEvent) =>

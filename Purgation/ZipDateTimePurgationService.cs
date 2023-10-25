@@ -26,8 +26,15 @@ namespace DotNetCompression.Purgation
       {
         try
         {
-          var zipFile = new ZipFile(x.ToString());
-          var isHealthy = zipFile.TestArchive(true);
+          ZipFile zipFile = new ZipFile(x.ToString());
+          zipFile.Password = options.Password;
+          bool isHealthy = zipFile.TestArchive(true, TestStrategy.FindAllErrors, delegate (TestStatus status, string message)
+          {
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+              Console.WriteLine(message);
+            }
+          });
           zipFile.Close();
           return isHealthy;
         }
