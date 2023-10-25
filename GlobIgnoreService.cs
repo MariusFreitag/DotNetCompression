@@ -22,6 +22,11 @@ namespace DotNetCompression
           cleanedPattern = cleanedPattern.Substring(0, cleanedPattern.IndexOf("#"));
         }
 
+        if(string.IsNullOrEmpty(cleanedPattern))
+        {
+          continue;
+        }
+
         var isNegated = cleanedPattern.StartsWith("!");
         if (isNegated)
         {
