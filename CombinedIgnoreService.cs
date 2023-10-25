@@ -6,11 +6,11 @@ namespace DotNetCompression
 {
   public class CombinedIgnoreService : IIgnoreService
   {
-    private List<IIgnoreService> ignoreServices = new List<IIgnoreService>();
+    private readonly List<IIgnoreService> ignoreServices = new();
 
     public bool IsIgnored(FileInfo file)
     {
-      foreach (var ignoreService in this.ignoreServices)
+      foreach (IIgnoreService ignoreService in ignoreServices)
       {
         if (ignoreService.IsIgnored(file))
         {
@@ -20,9 +20,9 @@ namespace DotNetCompression
       return false;
     }
 
-    public void addIgnoreService(IIgnoreService ignoreService)
+    public void AddIgnoreService(IIgnoreService ignoreService)
     {
-      this.ignoreServices.Add(ignoreService);
+      ignoreServices.Add(ignoreService);
     }
   }
 }

@@ -6,31 +6,31 @@ namespace DotNetCompression
 {
   public class GlobIgnoreService : IIgnoreService
   {
-    private string ignorePattern = null;
-    private Regex ignoreRegex = null;
-    private string includePattern = null;
-    private Regex includeRegex = null;
+    private string ignorePattern;
+    private Regex ignoreRegex;
+    private string includePattern;
+    private Regex includeRegex;
 
     public void AddFilePatterns(params string[] patterns)
     {
-      foreach (var pattern in patterns)
+      foreach (string pattern in patterns)
       {
-        var cleanedPattern = pattern;
+        string cleanedPattern = pattern;
 
-        if (cleanedPattern.IndexOf("#") >= 0)
+        if (cleanedPattern.Contains('#', System.StringComparison.InvariantCulture))
         {
-          cleanedPattern = cleanedPattern.Substring(0, cleanedPattern.IndexOf("#"));
+          cleanedPattern = cleanedPattern[..cleanedPattern.IndexOf("#", System.StringComparison.InvariantCulture)];
         }
 
-        if(string.IsNullOrEmpty(cleanedPattern))
+        if (string.IsNullOrEmpty(cleanedPattern))
         {
           continue;
         }
 
-        var isNegated = cleanedPattern.StartsWith("!");
+        bool isNegated = cleanedPattern.StartsWith("!", System.StringComparison.InvariantCulture);
         if (isNegated)
         {
-          cleanedPattern = cleanedPattern.Substring(1);
+          cleanedPattern = cleanedPattern[1..];
         }
 
         if (!cleanedPattern.StartsWith(Path.DirectorySeparatorChar))
@@ -39,7 +39,7 @@ namespace DotNetCompression
         }
         if (!cleanedPattern.EndsWith(Path.DirectorySeparatorChar))
         {
-          cleanedPattern = cleanedPattern + Path.DirectorySeparatorChar;
+          cleanedPattern += Path.DirectorySeparatorChar;
         }
 
         cleanedPattern = cleanedPattern.Replace('/', Path.DirectorySeparatorChar);
@@ -55,27 +55,13 @@ namespace DotNetCompression
 
         if (isNegated)
         {
-          if (includePattern == null)
-          {
-            includePattern = $"({cleanedPattern})";
-          }
-          else
-          {
-            includePattern = $"{includePattern.ToString()}|({cleanedPattern})";
-          }
+          includePattern = includePattern == null ? $"({cleanedPattern})" : $"{includePattern}|({cleanedPattern})";
           includePattern = new Regex(@"(\.)*(\.\*)+").Replace(includePattern, ".*");
           includeRegex = new Regex(includePattern);
         }
         else
         {
-          if (ignorePattern == null)
-          {
-            ignorePattern = $"(.*{cleanedPattern})";
-          }
-          else
-          {
-            ignorePattern = $"{ignorePattern.ToString()}|({cleanedPattern})";
-          }
+          ignorePattern = ignorePattern == null ? $"(.*{cleanedPattern})" : $"{ignorePattern}|({cleanedPattern})";
           ignorePattern = new Regex(@"(\.)*(\.\*)+").Replace(ignorePattern, ".*");
           ignoreRegex = new Regex(ignorePattern);
         }
@@ -84,22 +70,17 @@ namespace DotNetCompression
 
     public bool IsIgnored(FileInfo file)
     {
-      var fileName = file.FullName;
+      string fileName = file.FullName;
       if (!fileName.StartsWith(Path.DirectorySeparatorChar))
       {
         fileName = Path.DirectorySeparatorChar + fileName;
       }
       if (!fileName.EndsWith(Path.DirectorySeparatorChar))
       {
-        fileName = fileName + Path.DirectorySeparatorChar;
+        fileName += Path.DirectorySeparatorChar;
       }
 
-      if (ignoreRegex == null)
-      {
-        return false;
-      }
-
-      return ignoreRegex.IsMatch(fileName) && (includeRegex == null || !includeRegex.IsMatch(fileName));
+      return ignoreRegex != null && ignoreRegex.IsMatch(fileName) && (includeRegex == null || !includeRegex.IsMatch(fileName));
     }
   }
 }

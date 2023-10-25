@@ -7,14 +7,14 @@ namespace DotNetCompression
 {
   public class GitignoreService : IIgnoreService
   {
-    private GlobIgnoreService generalIgnoreService = new GlobIgnoreService();
-    private Dictionary<string, GlobIgnoreService> directoryIgnoreServices = new Dictionary<string, GlobIgnoreService>();
+    private readonly GlobIgnoreService generalIgnoreService = new();
+    private readonly Dictionary<string, GlobIgnoreService> directoryIgnoreServices = new();
 
     public GitignoreService(DirectoryInfo gitDirectory)
     {
       generalIgnoreService.AddFilePatterns(".git/");
 
-      foreach (var file in gitDirectory.GetFiles(".gitignore", SearchOption.AllDirectories))
+      foreach (FileInfo file in gitDirectory.GetFiles(".gitignore", SearchOption.AllDirectories))
       {
         if (!directoryIgnoreServices.ContainsKey(file.DirectoryName))
         {
@@ -26,8 +26,8 @@ namespace DotNetCompression
 
     public bool IsIgnored(FileInfo file)
     {
-      var isIgnored = false;
-      foreach (var (_, ignoreService) in directoryIgnoreServices.Where(x => file.DirectoryName.Contains(x.Key)))
+      bool isIgnored = false;
+      foreach ((string _, GlobIgnoreService ignoreService) in directoryIgnoreServices.Where(x => file.DirectoryName.Contains(x.Key)))
       {
         isIgnored = isIgnored || ignoreService.IsIgnored(file);
       }

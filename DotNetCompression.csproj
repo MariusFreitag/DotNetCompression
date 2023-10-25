@@ -5,6 +5,8 @@
     <TargetFramework>netcoreapp7</TargetFramework>
     <Version>0.0.1</Version>
     <Authors>Marius Freitag</Authors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>

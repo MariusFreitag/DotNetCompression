@@ -49,7 +49,7 @@ namespace DotNetCompression.Compression
         zipOutputStream.SetLevel((int)options.CompressionLevel);
         zipOutputStream.Password = options.Password;
 
-        folderOffset = options.Source.FullName.Length + (options.Source.FullName.EndsWith("\\") ? 0 : 1);
+        folderOffset = options.Source.FullName.Length + (options.Source.FullName.EndsWith("\\", StringComparison.Ordinal) ? 0 : 1);
 
         await CompressFolderAsync(options.Source);
 
@@ -68,10 +68,10 @@ namespace DotNetCompression.Compression
 
     private async Task CompressFolderAsync(DirectoryInfo directory)
     {
-      foreach (var file in directory.GetFiles())
+      foreach (FileInfo file in directory.GetFiles())
       {
         currentFileCount++;
-        var isIgnored = ignoreService.IsIgnored(file);
+        bool isIgnored = ignoreService.IsIgnored(file);
 
         Progress?.Invoke(this, new CompressionProgressEvent
         {
@@ -86,12 +86,14 @@ namespace DotNetCompression.Compression
           continue;
         }
 
-        string entryName = file.FullName.Substring(folderOffset);
+        string entryName = file.FullName[folderOffset..];
         entryName = ZipEntry.CleanName(entryName);
-        ZipEntry newEntry = new ZipEntry(entryName);
-        newEntry.DateTime = file.LastWriteTime;
+        ZipEntry newEntry = new(entryName)
+        {
+          DateTime = file.LastWriteTime,
 
-        newEntry.Size = file.Length;
+          Size = file.Length
+        };
 
         zipOutputStream.PutNextEntry(newEntry);
 
@@ -103,7 +105,7 @@ namespace DotNetCompression.Compression
         zipOutputStream.CloseEntry();
       }
 
-      foreach (var subdirectory in directory.GetDirectories())
+      foreach (DirectoryInfo subdirectory in directory.GetDirectories())
       {
         await CompressFolderAsync(subdirectory);
       }

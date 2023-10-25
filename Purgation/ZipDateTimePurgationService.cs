@@ -18,16 +18,18 @@ namespace DotNetCompression.Purgation
 
     public void Purge()
     {
-      var files = options.Directory.GetFiles()
+      IOrderedEnumerable<System.IO.FileInfo> files = options.Directory.GetFiles()
         .Where(x => DateTime.TryParseExact(x.Name, options.FileTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
         .OrderBy(x => DateTime.ParseExact(x.Name, options.FileTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None));
 
-      var healthyFiles = files.Where(x =>
+      System.IO.FileInfo[] healthyFiles = files.Where(x =>
       {
         try
         {
-          ZipFile zipFile = new ZipFile(x.ToString());
-          zipFile.Password = options.Password;
+          ZipFile zipFile = new(x.ToString())
+          {
+            Password = options.Password
+          };
           bool isHealthy = zipFile.TestArchive(true, TestStrategy.FindAllErrors, delegate (TestStatus status, string message)
           {
             if (!string.IsNullOrWhiteSpace(message))
@@ -43,11 +45,11 @@ namespace DotNetCompression.Purgation
           return false;
         }
       }).ToArray();
-      var corruptFiles = files.Where(x => !healthyFiles.Contains(x)).ToArray();
-      var oldHealthyFiles = healthyFiles.SkipLast(options.KeepCount).ToArray();
-      var residualFiles = healthyFiles.Where(x => !oldHealthyFiles.Contains(x)).ToArray();
+      System.IO.FileInfo[] corruptFiles = files.Where(x => !healthyFiles.Contains(x)).ToArray();
+      System.IO.FileInfo[] oldHealthyFiles = healthyFiles.SkipLast(options.KeepCount).ToArray();
+      System.IO.FileInfo[] residualFiles = healthyFiles.Where(x => !oldHealthyFiles.Contains(x)).ToArray();
 
-      foreach (var file in residualFiles)
+      foreach (System.IO.FileInfo file in residualFiles)
       {
         Progress?.Invoke(this, new PurgationProgressEvent
         {
@@ -57,7 +59,7 @@ namespace DotNetCompression.Purgation
         });
       }
 
-      foreach (var file in corruptFiles)
+      foreach (System.IO.FileInfo file in corruptFiles)
       {
         Exception exception = null;
         try
@@ -77,7 +79,7 @@ namespace DotNetCompression.Purgation
         });
       }
 
-      foreach (var file in oldHealthyFiles)
+      foreach (System.IO.FileInfo file in oldHealthyFiles)
       {
         Exception exception = null;
         try

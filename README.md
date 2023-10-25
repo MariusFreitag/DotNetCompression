@@ -33,3 +33,9 @@ Copyright (C) 2023 Marius Freitag
 
   --version                    Display version information.
 ```
+
+## Development
+- Install [.NET 7.0](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+- Run the program with `dotnet run`
+- Format the source code with `dotnet format`
+- Build and lint the project with `dotnet build /WarnAsError`

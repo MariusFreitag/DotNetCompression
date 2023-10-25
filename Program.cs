@@ -1,25 +1,26 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Diagnostics;
 using System.IO;
 using CommandLine;
 using DotNetCompression.Compression;
 using DotNetCompression.Purgation;
+using System.Globalization;
 
 namespace DotNetCompression
 {
-  class Program
+  internal sealed class Program
   {
     private static void Main(string[] args)
     {
-      Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed<CommandLineOptions>(o =>
+      _ = Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(parsedArguments =>
       {
-        var sourceDirectory = new DirectoryInfo(o.Source);
-        var destinationFile = new FileInfo(DateTime.Now.ToString(o.Destination));
+        DirectoryInfo sourceDirectory = new(parsedArguments.Source);
+        FileInfo destinationFile = new(DateTime.Now.ToString(parsedArguments.Destination, CultureInfo.CurrentCulture));
 
-        var ignoreService = setupIgnoreService(o, sourceDirectory);
-        var compressionService = setupCompressionService(ignoreService, sourceDirectory, destinationFile, o.Password);
-        var purgationService = setupPurgationService(o, destinationFile);
+        IIgnoreService ignoreService = SetupIgnoreService(parsedArguments, sourceDirectory);
+        ICompressionService compressionService = SetupCompressionService(ignoreService, sourceDirectory, destinationFile, parsedArguments.Password);
+        IPurgationService purgationService = SetupPurgationService(parsedArguments, destinationFile);
 
         Console.Write("Starting compression of ");
         Console.ForegroundColor = ConsoleColor.Blue;
@@ -30,7 +31,7 @@ namespace DotNetCompression
         Console.Write(destinationFile.FullName);
         Console.WriteLine();
 
-        var sw = new Stopwatch();
+        Stopwatch sw = new();
         sw.Start();
         compressionService.CompressAsync().Wait();
         ClearConsoleLine();
@@ -43,11 +44,11 @@ namespace DotNetCompression
 
         Console.Write("Size: ");
         Console.ForegroundColor = ConsoleColor.Green;
-        var destinationFileSize = Math.Round(new FileInfo(destinationFile.FullName).Length / (1024.0 * 1024.0), 2);
+        double destinationFileSize = Math.Round(new FileInfo(destinationFile.FullName).Length / (1024.0 * 1024.0), 2);
         Console.WriteLine($"{destinationFileSize}MB");
         Console.ForegroundColor = ConsoleColor.Gray;
 
-        if (o.RemoveExcept > 0)
+        if (parsedArguments.RemoveExcept > 0)
         {
           Console.WriteLine("Starting purgation");
           purgationService.Purge();
@@ -56,26 +57,26 @@ namespace DotNetCompression
       });
     }
 
-    private static IIgnoreService setupIgnoreService(CommandLineOptions options, DirectoryInfo sourceDirectory)
+    private static IIgnoreService SetupIgnoreService(CommandLineOptions options, DirectoryInfo sourceDirectory)
     {
-      CombinedIgnoreService combinedIgnoreService = new CombinedIgnoreService();
+      CombinedIgnoreService combinedIgnoreService = new();
       if (options.UseGitignoreFiles)
       {
-        combinedIgnoreService.addIgnoreService(new GitignoreService(sourceDirectory));
+        combinedIgnoreService.AddIgnoreService(new GitignoreService(sourceDirectory));
       }
       else if (options.IgnoreFile != null)
       {
-        var globIgnoreService = new GlobIgnoreService();
+        GlobIgnoreService globIgnoreService = new();
         globIgnoreService.AddFilePatterns(File.ReadAllLines(options.IgnoreFile));
-        combinedIgnoreService.addIgnoreService(globIgnoreService);
+        combinedIgnoreService.AddIgnoreService(globIgnoreService);
       }
 
       return combinedIgnoreService;
     }
 
-    private static ICompressionService setupCompressionService(IIgnoreService ignoreService, DirectoryInfo sourceDirectory, FileInfo destinationFile, string password)
+    private static ICompressionService SetupCompressionService(IIgnoreService ignoreService, DirectoryInfo sourceDirectory, FileInfo destinationFile, string password)
     {
-      var zipService = new ZipCompressionService(ignoreService, new CompressionOptions
+      ZipCompressionService zipService = new(ignoreService, new CompressionOptions
       {
         Source = sourceDirectory,
         Destination = destinationFile,
@@ -88,12 +89,12 @@ namespace DotNetCompression
       {
         ClearConsoleLine();
 
-        var progressString = $"{progressEvent.CurrentCount}/{progressEvent.TotalCount} ";
-        var currentElement = progressEvent.CurrentElement.FullName;
-        var excessCharacters = currentElement.Length + progressString.Length - Console.WindowWidth;
+        string progressString = $"{progressEvent.CurrentCount}/{progressEvent.TotalCount} ";
+        string currentElement = progressEvent.CurrentElement.FullName;
+        int excessCharacters = currentElement.Length + progressString.Length - Console.WindowWidth;
         if (excessCharacters > 0)
         {
-          currentElement = "..." + currentElement.Substring(excessCharacters + 3);
+          currentElement = "..." + currentElement[(excessCharacters + 3)..];
         }
 
         Console.ForegroundColor = ConsoleColor.Green;
@@ -106,10 +107,10 @@ namespace DotNetCompression
       return zipService;
     }
 
-    private static IPurgationService setupPurgationService(CommandLineOptions options, FileInfo destinationFile)
+    private static IPurgationService SetupPurgationService(CommandLineOptions options, FileInfo destinationFile)
     {
 
-      var purgationService = new ZipDateTimePurgationService(new PurgationOptions
+      ZipDateTimePurgationService purgationService = new(new PurgationOptions
       {
         Directory = destinationFile.Directory,
         FileTimeFormat = options.Destination.Split("\\/").Last(),
@@ -133,6 +134,8 @@ namespace DotNetCompression
           case PurgationFileType.Residual:
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("Keeping file ");
+            break;
+          default:
             break;
         }
 
