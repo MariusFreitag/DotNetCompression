@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp7</TargetFramework>
+    <Version>0.0.1</Version>
+    <Authors>Marius Freitag</Authors>
   </PropertyGroup>
 
   <ItemGroup>
