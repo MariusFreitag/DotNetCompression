@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using DotNetCompression.Compression;
 
-namespace DotNetCompression
+namespace DotNetCompression.Ignoring
 {
   public class CombinedIgnoreService : IIgnoreService
   {

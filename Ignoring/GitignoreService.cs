@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using DotNetCompression.Compression;
 
-namespace DotNetCompression
+namespace DotNetCompression.Ignoring
 {
   public class GitignoreService : IIgnoreService
   {

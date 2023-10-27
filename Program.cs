@@ -6,6 +6,7 @@ using CommandLine;
 using DotNetCompression.Compression;
 using DotNetCompression.Purgation;
 using System.Globalization;
+using DotNetCompression.Ignoring;
 
 namespace DotNetCompression
 {

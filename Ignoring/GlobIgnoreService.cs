@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using DotNetCompression.Compression;
 
-namespace DotNetCompression
+namespace DotNetCompression.Ignoring
 {
   public class GlobIgnoreService : IIgnoreService
   {
