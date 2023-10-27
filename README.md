@@ -1,18 +1,20 @@
 # DotNetCompression
-Cross-platform CLI to compress folders using C# and .NET Core.
+![](screen-recording.gif)
 
-This is mainly opinionated towards my everyday usage but includes some nice features like `.gitignore` parsing, automatic archive removal, archive integrity checks, automatic date insertion, and password-protected archives.
+Cross-platform CLI tool to compress folders using C# and .NET Core.
 
-A basic command could look like the following:
+Although it is designed with my daily use-cases in mind, it hosts a variety of beneficial features such as `.gitignore` parsing, automatic archive deletion, archive integrity checks, automatic date insertion, and creation of password-protected archives.
+
+To get started, install [.NET 7.0](https://dotnet.microsoft.com/en-us/download/dotnet/7.0). A basic command to use this tool would be:
 
 ```sh
-dotnet run -- --source . --destination "..\/\T\e\s\t\/yyyy-MM-dd-HH-mm-ss \B\a\c\k\u\p.\zip" --remove-except 2 --use-gitignore-files --password pw
+dotnet run -- --source files --destination "yyyy-MM-dd-HH-mm-ss \B\a\c\k\u\p.\zip" --remove-except 2 --use-gitignore-files --password pw
 ```
 
-## Capabilities
-```sh
-dotnet run -- --help
-```
+It reveals its true potential when integrated with aliases and automated workflows.
+
+## Features
+Run `dotnet run -- --help` to explore all supported capabilities.
 
 ```
 Copyright (C) 2023 Marius Freitag
@@ -35,7 +37,6 @@ Copyright (C) 2023 Marius Freitag
 ```
 
 ## Development
-- Install [.NET 7.0](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
-- Run the program with `dotnet run`
-- Format the source code with `dotnet format`
-- Build and lint the project with `dotnet build /WarnAsError`
+- Execute the program using `dotnet run`
+- Format the source code with `dotnet format DotNetCompression.sln`
+- Build and lint the project using `dotnet build /WarnAsError`
