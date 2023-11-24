@@ -6,22 +6,16 @@ using ICSharpCode.SharpZipLib.Zip;
 
 namespace DotNetCompression.Compression
 {
-  public class ZipCompressionService : ICompressionService
+  public class ZipCompressionService(IIgnoreService ignoreService, CompressionOptions options) : ICompressionService
   {
-    private readonly IIgnoreService ignoreService;
-    private readonly CompressionOptions options;
+    private readonly IIgnoreService ignoreService = ignoreService;
+    private readonly CompressionOptions options = options;
 
     private int folderOffset;
     private ZipOutputStream zipOutputStream;
 
     private int totalFileCount;
     private int currentFileCount;
-
-    public ZipCompressionService(IIgnoreService ignoreService, CompressionOptions options)
-    {
-      this.ignoreService = ignoreService;
-      this.options = options;
-    }
 
     public event EventHandler<CompressionProgressEvent> Progress;
 
@@ -49,7 +43,7 @@ namespace DotNetCompression.Compression
         zipOutputStream.SetLevel((int)options.CompressionLevel);
         zipOutputStream.Password = options.Password;
 
-        folderOffset = options.Source.FullName.Length + (options.Source.FullName.EndsWith("\\", StringComparison.Ordinal) ? 0 : 1);
+        folderOffset = options.Source.FullName.Length + (options.Source.FullName.EndsWith('\\') ? 0 : 1);
 
         await CompressFolderAsync(options.Source);
 

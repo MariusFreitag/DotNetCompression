@@ -8,7 +8,7 @@ namespace DotNetCompression.Ignoring
   public class GitignoreService : IIgnoreService
   {
     private readonly GlobIgnoreService generalIgnoreService = new();
-    private readonly Dictionary<string, GlobIgnoreService> directoryIgnoreServices = new();
+    private readonly Dictionary<string, GlobIgnoreService> directoryIgnoreServices = [];
 
     public GitignoreService(DirectoryInfo gitDirectory)
     {

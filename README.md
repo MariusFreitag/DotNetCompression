@@ -5,7 +5,7 @@ Cross-platform CLI tool to compress folders using C# and .NET Core.
 
 Although it is designed with my daily use-cases in mind, it hosts a variety of beneficial features such as `.gitignore` parsing, automatic archive deletion, archive integrity checks, automatic date insertion, and creation of password-protected archives.
 
-To get started, install [.NET 7.0](https://dotnet.microsoft.com/en-us/download/dotnet/7.0). A basic command to use this tool would be:
+To get started, install [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0). A basic command to use this tool would be:
 
 ```sh
 dotnet run -- --source files --destination "yyyy-MM-dd-HH-mm-ss \B\a\c\k\u\p.\zip" --remove-except 2 --use-gitignore-files --password pw

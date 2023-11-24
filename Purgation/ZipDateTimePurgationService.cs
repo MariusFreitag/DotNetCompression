@@ -5,14 +5,9 @@ using ICSharpCode.SharpZipLib.Zip;
 
 namespace DotNetCompression.Purgation
 {
-  public class ZipDateTimePurgationService : IPurgationService
+  public class ZipDateTimePurgationService(PurgationOptions options) : IPurgationService
   {
-    private readonly PurgationOptions options;
-
-    public ZipDateTimePurgationService(PurgationOptions options)
-    {
-      this.options = options;
-    }
+    private readonly PurgationOptions options = options;
 
     public event EventHandler<PurgationProgressEvent> Progress;
 

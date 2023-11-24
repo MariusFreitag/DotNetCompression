@@ -19,7 +19,7 @@ namespace DotNetCompression.Ignoring
 
         if (cleanedPattern.Contains('#', System.StringComparison.InvariantCulture))
         {
-          cleanedPattern = cleanedPattern[..cleanedPattern.IndexOf("#", System.StringComparison.InvariantCulture)];
+          cleanedPattern = cleanedPattern[..cleanedPattern.IndexOf('#')];
         }
 
         if (string.IsNullOrEmpty(cleanedPattern))
@@ -27,7 +27,7 @@ namespace DotNetCompression.Ignoring
           continue;
         }
 
-        bool isNegated = cleanedPattern.StartsWith("!", System.StringComparison.InvariantCulture);
+        bool isNegated = cleanedPattern.StartsWith('!');
         if (isNegated)
         {
           cleanedPattern = cleanedPattern[1..];

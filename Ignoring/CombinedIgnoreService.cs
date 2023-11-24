@@ -6,7 +6,7 @@ namespace DotNetCompression.Ignoring
 {
   public class CombinedIgnoreService : IIgnoreService
   {
-    private readonly List<IIgnoreService> ignoreServices = new();
+    private readonly List<IIgnoreService> ignoreServices = [];
 
     public bool IsIgnored(FileInfo file)
     {
