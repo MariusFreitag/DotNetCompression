@@ -17,7 +17,7 @@ namespace DotNetCompression.Purgation
         .Where(x => DateTime.TryParseExact(x.Name, options.FileTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
         .OrderBy(x => DateTime.ParseExact(x.Name, options.FileTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None));
 
-      System.IO.FileInfo[] healthyFiles = files.Where(x =>
+      System.IO.FileInfo[] healthyFiles = [.. files.Where(x =>
       {
         try
         {
@@ -39,10 +39,10 @@ namespace DotNetCompression.Purgation
         {
           return false;
         }
-      }).ToArray();
-      System.IO.FileInfo[] corruptFiles = files.Where(x => !healthyFiles.Contains(x)).ToArray();
-      System.IO.FileInfo[] oldHealthyFiles = healthyFiles.SkipLast(options.KeepCount).ToArray();
-      System.IO.FileInfo[] residualFiles = healthyFiles.Where(x => !oldHealthyFiles.Contains(x)).ToArray();
+      })];
+      System.IO.FileInfo[] corruptFiles = [.. files.Where(x => !healthyFiles.Contains(x))];
+      System.IO.FileInfo[] oldHealthyFiles = [.. healthyFiles.SkipLast(options.KeepCount)];
+      System.IO.FileInfo[] residualFiles = [.. healthyFiles.Where(x => !oldHealthyFiles.Contains(x))];
 
       foreach (System.IO.FileInfo file in residualFiles)
       {
